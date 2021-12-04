@@ -2,6 +2,14 @@
 
 아주 평범한 Todo API 를 제공하는 REST API 샘플입니다.
 
+## Environments
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_DATABASE`
+
 ## TODO
 
 - [ ] tests 추가
