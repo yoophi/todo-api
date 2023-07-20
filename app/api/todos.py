@@ -1,9 +1,9 @@
 from flask import jsonify, request
 
 from app.api import api
-from app.database import db
-from app.models import Todo
 from app.schema import TodoSchema
+from app.service.todo import TodoService
+from app.exceptions import TodoNotFound
 
 
 @api.route('/todos')
@@ -22,7 +22,8 @@ def todo_list():
           items:
             $ref: '#/definitions/Todo'
     """
-    items = db.session.query(Todo).all()
+    todo_service = TodoService()
+    items = todo_service.get_todo_list()
     rv = TodoSchema(many=True).dump(items)
 
     return jsonify(rv)
@@ -49,7 +50,8 @@ def todo_item(id):
           $ref: '#/definitions/Todo'
     """
 
-    item = db.session.query(Todo).get(id)
+    todo_service = TodoService()
+    item = todo_service.get_todo_detail(id)
     if not item:
         return jsonify(message="not found"), 404
 
@@ -89,13 +91,12 @@ def create_todo():
 
     payload = request.json
     user_id = request.headers.get('user-id')
-    todo = Todo(
+    todo_service = TodoService()
+    todo_service.add_todo(
         title=payload.get('title'),
         priority=payload.get('priority'),
         user_id=user_id,
     )
-    db.session.add(todo)
-    db.session.commit()
 
     return jsonify(message="todo created"), 200
 
@@ -123,14 +124,14 @@ def delete_todo(id):
         description: OK
     """
     user_id = int(request.headers.get('user-id', 0))
-    todo = db.session.query(Todo).get(id)
-    if not todo:
+    todo_service = TodoService()
+    try:
+        todo_service.remove_todo(id=id, user_id=user_id)
+    except TodoNotFound:
         return jsonify(message='not found'), 404
-
-    if todo.user_id != user_id:
-        return jsonify(error=True, message='permission denied'), 401
-
-    db.session.delete(todo)
-    db.session.commit()
+    except PermissionError:
+        return jsonify(message='permission denied'), 401
+    except Exception as e:
+        return jsonify(message=str(e)), 500
 
     return jsonify(result='todo deleted'), 200
