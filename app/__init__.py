@@ -2,12 +2,16 @@ from flask import Flask
 
 from app.commands import init_command
 from app.config import config
+from app.containers import Container
 from app.database import db
 from app.extensions import cors, ma, migrate
 
 
 def create_app(config_name="default", settings_override=None):
+    container = Container()
+
     app = Flask(__name__)
+    app.container = container
     app.config.from_object(config[config_name])
     if settings_override:
         app.config.update(settings_override)

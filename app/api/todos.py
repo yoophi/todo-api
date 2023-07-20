@@ -1,13 +1,16 @@
+from dependency_injector.wiring import inject, Provide
 from flask import jsonify, request
 
 from app.api import api
+from app.containers import Container
 from app.schema import TodoSchema
-from app.service.todo import TodoService
 from app.exceptions import TodoNotFound
+from app.service.todo import TodoService
 
 
 @api.route('/todos')
-def todo_list():
+@inject
+def todo_list(todo_service: TodoService = Provide[Container.todo_service]):
     """
     Get Todo List
     사용자의 Todo 목록을 가져온다.
@@ -22,7 +25,6 @@ def todo_list():
           items:
             $ref: '#/definitions/Todo'
     """
-    todo_service = TodoService()
     items = todo_service.get_todo_list()
     rv = TodoSchema(many=True).dump(items)
 
@@ -30,7 +32,8 @@ def todo_list():
 
 
 @api.route('/todos/<int:id>')
-def todo_item(id):
+@inject
+def todo_item(id, todo_service=Provide[Container.todo_service]):
     """
     Get Todo
     사용자의 Todo 항목을 가져온다.
@@ -49,8 +52,6 @@ def todo_item(id):
         schema:
           $ref: '#/definitions/Todo'
     """
-
-    todo_service = TodoService()
     item = todo_service.get_todo_detail(id)
     if not item:
         return jsonify(message="not found"), 404
@@ -59,7 +60,8 @@ def todo_item(id):
 
 
 @api.route('/todos', methods=['POST', ])
-def create_todo():
+@inject
+def create_todo(todo_service=Provide[Container.todo_service]):
     """
     Get Todo
     사용자의 Todo 항목을 가져온다.
@@ -88,10 +90,8 @@ def create_todo():
       200:
         description: OK
     """
-
     payload = request.json
     user_id = request.headers.get('user-id')
-    todo_service = TodoService()
     todo_service.add_todo(
         title=payload.get('title'),
         priority=payload.get('priority'),
@@ -102,7 +102,8 @@ def create_todo():
 
 
 @api.route('/todos/<int:id>', methods=['DELETE', ])
-def delete_todo(id):
+@inject
+def delete_todo(id, todo_service=Provide[Container.todo_service]):
     """
     해당 Todo 삭제
     ---
@@ -124,7 +125,6 @@ def delete_todo(id):
         description: OK
     """
     user_id = int(request.headers.get('user-id', 0))
-    todo_service = TodoService()
     try:
         todo_service.remove_todo(id=id, user_id=user_id)
     except TodoNotFound:
@@ -135,3 +135,4 @@ def delete_todo(id):
         return jsonify(message=str(e)), 500
 
     return jsonify(result='todo deleted'), 200
+

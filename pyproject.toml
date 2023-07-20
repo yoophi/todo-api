@@ -13,6 +13,7 @@ flask-cors = "^3.0.8"
 flask-marshmallow = "^0.12.0"
 flask-migrate = "^2.5.3"
 psycopg2-binary = "^2.8.5"
+dependency-injector = "^4.41.0"
 
 [tool.poetry.dev-dependencies]
 
