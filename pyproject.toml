@@ -5,14 +5,15 @@ description = ""
 authors = ["Pyunghyuk Yoo <pyunghyuk@likelion.net>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
-flask = "^1.1.2"
-flask-sqlalchemy = "^2.4.1"
+python = "^3.9"
+flask = "^3.1.2"
+flask-sqlalchemy = "^3.1.1"
 flask-swagger = "^0.2.14"
-flask-cors = "^3.0.8"
-flask-marshmallow = "^0.12.0"
-flask-migrate = "^2.5.3"
-psycopg2-binary = "^2.8.5"
+flask-cors = "^6.0.1"
+flask-marshmallow = "^1.3.0"
+marshmallow-sqlalchemy = "^1.0.0"
+flask-migrate = "^4.1.0"
+psycopg2-binary = "^2.9.11"
 
 [tool.poetry.dev-dependencies]
 
