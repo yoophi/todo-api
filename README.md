@@ -6,7 +6,7 @@
 
 - Python 3.9+
 - PostgreSQL
-- Poetry (의존성 관리)
+- uv (의존성 관리)
 
 ## Tech Stack
 
@@ -49,7 +49,8 @@ todo-api/
 │   ├── project.md
 │   ├── AGENTS.md
 │   └── changes/
-├── pyproject.toml             # Poetry 의존성 설정
+├── pyproject.toml             # 프로젝트 설정 및 의존성 (uv)
+├── uv.lock                    # 의존성 잠금 파일 (uv)
 └── README.md
 ```
 
@@ -108,14 +109,17 @@ todo-api/
 ## Installation
 
 ```bash
-# Poetry 설치 (없는 경우)
-curl -sSL https://install.python-poetry.org | python3 -
+# uv 설치 (없는 경우)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# 의존성 설치
-poetry install
+# 의존성 설치 및 가상환경 생성
+uv sync
 
 # 가상환경 활성화
-poetry shell
+source .venv/bin/activate
+
+# 또는 uv run을 사용하여 명령 실행
+# uv run flask run
 ```
 
 ## Database Setup
@@ -131,12 +135,15 @@ flask db upgrade
 ## Running the Application
 
 ```bash
-# Development 모드
+# Development 모드 (가상환경 활성화 후)
 flask run
 
-# 또는 특정 설정으로 실행
+# 또는 uv run 사용 (가상환경 활성화 없이)
+uv run flask run
+
+# 특정 설정으로 실행
 export FLASK_ENV=development
-flask run
+uv run flask run
 ```
 
 ## TODO
