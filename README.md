@@ -79,6 +79,37 @@ todo-api/
 
 ### 아키텍처 계층
 
+```mermaid
+graph LR
+    subgraph "Hexagonal Architecture"
+        subgraph "Core"
+            D[Domain Layer<br/>비즈니스 로직 & 규칙]
+            A[Application Layer<br/>유즈케이스]
+        end
+
+        subgraph "Adapters"
+            IN[Inbound Adapters<br/>REST API]
+            OUT[Outbound Adapters<br/>Database]
+        end
+
+        I[Infrastructure<br/>Config, DI Container]
+    end
+
+    IN --> A
+    A --> D
+    A --> OUT
+    OUT -.-> D
+    I -.-> IN
+    I -.-> OUT
+
+    style D fill:#f9f,stroke:#333,stroke-width:3px
+    style A fill:#bbf,stroke:#333,stroke-width:2px
+    style IN fill:#bfb,stroke:#333,stroke-width:2px
+    style OUT fill:#bfb,stroke:#333,stroke-width:2px
+    style I fill:#fbb,stroke:#333,stroke-width:2px
+```
+
+**계층별 역할**:
 1. **Domain Layer**: 비즈니스 로직과 규칙 (외부 의존성 없음)
 2. **Application Layer**: 유즈케이스 구현
 3. **Adapters Layer**: 외부 세계와의 연결 (API, Database)
