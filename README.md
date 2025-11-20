@@ -1,6 +1,6 @@
 # Todo API
 
-아주 평범한 Todo API 를 제공하는 REST API 샘플입니다.
+헥사고날 아키텍처 패턴으로 구조화된 Todo API REST API 샘플입니다.
 
 ## Requirements
 
@@ -17,42 +17,72 @@
 - **Serialization**: Flask-Marshmallow 1.3.0, Marshmallow-SQLAlchemy 1.0.0
 - **API Documentation**: Flask-Swagger 0.2.14
 - **CORS**: Flask-CORS 6.0.1
+- **Architecture**: Hexagonal Architecture (Ports and Adapters)
+
+## Architecture
+
+이 프로젝트는 **헥사고날 아키텍처(Hexagonal Architecture)** 패턴으로 구조화되어 있습니다.
+
+자세한 아키텍처 설명은 [ARCHITECTURE.md](ARCHITECTURE.md)를 참조하세요.
 
 ## Project Structure
 
 ```
 todo-api/
-├── app/                        # 메인 애플리케이션 패키지
-│   ├── __init__.py            # Flask 앱 팩토리 (create_app)
-│   ├── __meta__.py            # 메타데이터
-│   ├── config.py              # 환경별 설정 (Development, Testing, Production, Docker, Unix)
-│   ├── database.py            # SQLAlchemy 인스턴스
-│   ├── extensions.py          # Flask 확장 (CORS, Marshmallow, Migrate)
-│   ├── exceptions.py          # 커스텀 예외
-│   ├── schema.py              # Marshmallow 스키마 (TodoSchema)
-│   ├── api/                   # REST API 엔드포인트
-│   │   ├── __init__.py        # API Blueprint
-│   │   └── todos.py           # Todo CRUD API
-│   ├── models/                # 데이터베이스 모델
-│   │   └── __init__.py        # Todo 모델
-│   ├── views/                 # 기본 뷰
-│   │   └── __init__.py        # 메인 Blueprint
-│   ├── swagger/               # Swagger 문서
-│   │   └── __init__.py
-│   └── commands/              # Flask CLI 명령어
-│       └── __init__.py
-├── migrations/                # Alembic 마이그레이션
-│   ├── env.py
-│   ├── alembic.ini
-│   └── versions/
-├── openspec/                  # 프로젝트 문서 및 명세
-│   ├── project.md
-│   ├── AGENTS.md
-│   └── changes/
-├── pyproject.toml             # 프로젝트 설정 및 의존성 (uv)
-├── uv.lock                    # 의존성 잠금 파일 (uv)
+├── app/                                # 메인 애플리케이션 패키지
+│   ├── __init__.py                    # Flask 앱 팩토리 (create_app)
+│   │
+│   ├── domain/                        # 도메인 계층 (핵심 비즈니스 로직)
+│   │   ├── entities/                  # 도메인 엔티티
+│   │   │   └── todo.py               # Todo 엔티티 (비즈니스 규칙)
+│   │   ├── repositories/             # Repository 인터페이스 (Ports)
+│   │   │   └── todo_repository.py    # TodoRepository 인터페이스
+│   │   └── exceptions.py             # 도메인 예외
+│   │
+│   ├── application/                   # 애플리케이션 계층 (유즈케이스)
+│   │   ├── dtos/                     # 데이터 전송 객체
+│   │   │   └── todo_dto.py          # Todo DTO
+│   │   └── use_cases/                # 비즈니스 플로우
+│   │       ├── create_todo.py       # Todo 생성 유즈케이스
+│   │       ├── get_todo.py          # Todo 조회 유즈케이스
+│   │       ├── list_todos.py        # Todo 목록 유즈케이스
+│   │       └── delete_todo.py       # Todo 삭제 유즈케이스
+│   │
+│   ├── adapters/                      # 어댑터 계층
+│   │   ├── inbound/                  # Primary Adapters (입력)
+│   │   │   └── api/                  # REST API 어댑터
+│   │   │       ├── todos.py         # API 엔드포인트
+│   │   │       └── schemas.py       # Marshmallow 스키마
+│   │   └── outbound/                 # Secondary Adapters (출력)
+│   │       └── persistence/          # 데이터베이스 어댑터
+│   │           ├── models.py        # SQLAlchemy 모델
+│   │           └── todo_repository.py # Repository 구현
+│   │
+│   ├── infrastructure/                # 인프라 계층
+│   │   ├── config.py                 # 환경별 설정
+│   │   ├── database.py               # SQLAlchemy 인스턴스
+│   │   ├── extensions.py             # Flask 확장
+│   │   └── container.py              # 의존성 주입 컨테이너
+│   │
+│   ├── views/                         # 기본 뷰
+│   ├── swagger/                       # Swagger 문서
+│   ├── commands/                      # Flask CLI 명령어
+│   └── __meta__.py                    # 메타데이터
+│
+├── migrations/                        # Alembic 마이그레이션
+├── openspec/                          # 프로젝트 문서 및 명세
+├── ARCHITECTURE.md                    # 아키텍처 상세 문서
+├── pyproject.toml                     # 프로젝트 설정 및 의존성 (uv)
+├── uv.lock                            # 의존성 잠금 파일 (uv)
 └── README.md
 ```
+
+### 아키텍처 계층
+
+1. **Domain Layer**: 비즈니스 로직과 규칙 (외부 의존성 없음)
+2. **Application Layer**: 유즈케이스 구현
+3. **Adapters Layer**: 외부 세계와의 연결 (API, Database)
+4. **Infrastructure Layer**: 기술적 세부사항 및 설정
 
 ## Environment Variables
 
@@ -126,10 +156,10 @@ source .venv/bin/activate
 
 ```bash
 # 데이터베이스 마이그레이션 초기화 (이미 완료됨)
-flask db init
+uv run flask db init
 
 # 마이그레이션 실행
-flask db upgrade
+uv run flask db upgrade
 ```
 
 ## Running the Application
@@ -146,10 +176,21 @@ export FLASK_ENV=development
 uv run flask run
 ```
 
+## Architecture Benefits
+
+헥사고날 아키텍처를 사용하여 다음과 같은 이점을 얻습니다:
+
+- ✅ **테스트 용이성**: 비즈니스 로직을 독립적으로 테스트 가능
+- ✅ **유지보수성**: 관심사의 명확한 분리로 코드 이해와 수정이 용이
+- ✅ **확장성**: 새로운 어댑터 추가가 쉬움 (GraphQL, gRPC 등)
+- ✅ **독립성**: 프레임워크/데이터베이스 교체가 용이
+- ✅ **재사용성**: 도메인 로직을 다양한 환경에서 재사용 가능
+
 ## TODO
 
 - [ ] tests 추가
 - [ ] Docker Build 추가
 - [ ] `docker-compose` 환경 추가
 - [ ] `seed-data` command 추가
-- [ ] 다양한 데이터 저장소 지원 
+- [ ] 다양한 데이터 저장소 지원 (MongoDB, Redis 등)
+- [x] 헥사고날 아키텍처로 리팩토링 

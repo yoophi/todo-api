@@ -1,38 +1,13 @@
-from app.extensions import ma
-from app.swagger import swagger_definition
+"""
+Backward compatibility wrapper for schemas.
 
+기존 코드와의 호환성을 위해 유지됩니다.
+새로운 코드에서는 app.adapters.inbound.api.schemas를 사용하세요.
+"""
+from app.adapters.inbound.api.schemas import TodoSchema  # noqa
+from app.swagger import swagger_definition  # noqa
 
-@swagger_definition
-class TodoSchema(ma.Schema):
-    """
-    Todo
-    ---
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      title:
-        type: "string"
-      priority:
-        type: "integer"
-        format: "int64"
-      user_id:
-        type: "integer"
-        format: "int64"
-      created_at:
-        type: "string"
-        format: "date-time"
-      updated_at:
-        type: "string"
-        format: "date-time"
-    """
+# Swagger 정의를 위해 TodoSchema에 데코레이터 적용
+TodoSchema = swagger_definition(TodoSchema)
 
-    class Meta:
-        fields = (
-            "id",
-            "title", "priority",
-            "user_id",
-            "created_at", "updated_at",
-        )
-
+__all__ = ['TodoSchema']
