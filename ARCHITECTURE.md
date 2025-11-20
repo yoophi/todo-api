@@ -129,29 +129,17 @@ app/
 
 ## 의존성 규칙
 
-```
-┌─────────────────────────────────────────┐
-│         Adapters (Inbound)              │
-│       REST API, CLI, etc.               │
-└──────────────┬──────────────────────────┘
-               │
-               ↓
-┌─────────────────────────────────────────┐
-│      Application (Use Cases)            │
-│                                         │
-└──────────────┬──────────────────────────┘
-               │
-               ↓
-┌─────────────────────────────────────────┐
-│       Domain (Entities)                 │
-│    Business Logic & Rules               │
-└──────────────┬──────────────────────────┘
-               ↑
-               │
-┌──────────────┴──────────────────────────┐
-│      Adapters (Outbound)                │
-│    Database, External APIs, etc.        │
-└─────────────────────────────────────────┘
+```mermaid
+graph TD
+    A[Adapters - Inbound<br/>REST API, CLI, etc.] --> B[Application Layer<br/>Use Cases]
+    B --> C[Domain Layer<br/>Entities & Business Logic]
+    D[Adapters - Outbound<br/>Database, External APIs] -.-> C
+    B --> D
+
+    style C fill:#f9f,stroke:#333,stroke-width:4px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style A fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#bfb,stroke:#333,stroke-width:2px
 ```
 
 **핵심 원칙**:
@@ -176,14 +164,31 @@ result = use_case.execute(dto)
 
 ### Todo 생성 요청 흐름:
 
-1. **HTTP 요청** → `adapters/inbound/api/todos.py:create_todo()`
-2. **DTO 생성** → `CreateTodoDTO` 생성
-3. **유즈케이스 실행** → `CreateTodoUseCase.execute(dto)`
-4. **도메인 엔티티 생성** → `Todo` 엔티티 생성 (비즈니스 규칙 검증)
-5. **레포지토리 저장** → `TodoRepository.save(todo)` 호출
-6. **데이터베이스 저장** → `SQLAlchemyTodoRepository` 구현체가 실행
-7. **DTO 변환** → 도메인 엔티티를 `TodoDTO`로 변환
-8. **HTTP 응답** → JSON으로 직렬화하여 응답
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant API as REST API<br/>(Inbound Adapter)
+    participant UseCase as CreateTodoUseCase<br/>(Application)
+    participant Entity as Todo Entity<br/>(Domain)
+    participant Repo as TodoRepository<br/>(Outbound Adapter)
+    participant DB as Database
+
+    Client->>API: POST /api/todos
+    API->>API: CreateTodoDTO 생성
+    API->>UseCase: execute(dto)
+    UseCase->>Entity: new Todo(title, user_id, priority)
+    Entity->>Entity: validate() - 비즈니스 규칙 검증
+    UseCase->>Repo: save(todo)
+    Repo->>Repo: TodoModel.from_entity(todo)
+    Repo->>DB: INSERT
+    DB-->>Repo: 저장된 레코드
+    Repo->>Repo: model.to_entity()
+    Repo-->>UseCase: Todo entity
+    UseCase->>UseCase: TodoDTO.from_entity(todo)
+    UseCase-->>API: TodoDTO
+    API->>API: JSON 직렬화
+    API-->>Client: HTTP 201 Response
+```
 
 ## 장점
 
