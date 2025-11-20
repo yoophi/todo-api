@@ -1,7 +1,7 @@
-from flask_cors import CORS
-from flask_marshmallow import Marshmallow
-from flask_migrate import Migrate
+"""
+Backward compatibility wrapper for extensions module.
 
-cors = CORS()
-ma = Marshmallow()
-migrate = Migrate()
+기존 코드와의 호환성을 위해 유지됩니다.
+새로운 코드에서는 app.infrastructure.extensions를 직접 사용하세요.
+"""
+from app.infrastructure.extensions import *  # noqa

@@ -1,14 +1,9 @@
-from datetime import datetime, timezone
+"""
+Backward compatibility wrapper for models.
 
-from app.database import db
+기존 코드와의 호환성을 위해 유지됩니다.
+새로운 코드에서는 app.adapters.outbound.persistence.models를 사용하세요.
+"""
+from app.adapters.outbound.persistence.models import TodoModel as Todo  # noqa
 
-
-class Todo(db.Model):
-    __tablename__ = 'tdods'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.Unicode(255), nullable=False)
-    priority = db.Column(db.Integer, default=3)
-    user_id = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+__all__ = ['Todo']
